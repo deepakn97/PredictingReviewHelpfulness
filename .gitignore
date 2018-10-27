@@ -1,0 +1,6 @@
+*.txt
+*.pyc
+*.pyx
+*.csv
+*.json.gz
+/data/
