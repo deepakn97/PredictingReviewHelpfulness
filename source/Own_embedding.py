@@ -12,30 +12,34 @@ from keras.layers import Flatten
 from keras.layers.embeddings import Embedding
 
 # %%
-data = util.getData(os.path.abspath('../PredictingReviewHelpfulness/Data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
-# %%
+data = util.getData(os.path.abspath('../data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
 print (data.shape)
 
 # %%
-
 vocab = np.asarray([])
 c = 0
-for row in data:
-    if row[0]>0.5 : c+=1
+for i,row in enumerate(data):
+    if (row[0]>0.5):
+        c+=1
     row[0] = row[0]>0.5
+    if(i%10000 == 0): print(i)
     vocab = np.append(vocab,row[2])
 vocab = np.unique(vocab)
 
-print (c)
+# print (c)
 
-# %% Collecting all the documents
+# %%
+# Collecting all the documents
 docs = np.asarray([row[1] for row in data])
 label = np.asarray([row[0] for row in data])
-# %% Converting the text to an array of integers
+
+# %%
+# Converting the text to an array of integers
 vocab_size = vocab.shape[0]
 encoded_docs = [one_hot(d,vocab.shape[0]) for d in docs]
 
-# %% Padding the Document
+# %%
+# Padding the Document
 max_len = 0
 for str in docs:
     max_len = max(max_len,len(str))
