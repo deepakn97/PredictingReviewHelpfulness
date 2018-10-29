@@ -1,5 +1,7 @@
+
 # %%
 import numpy as np
+import os
 import pandas as pd
 import gzip
 import nltk
@@ -8,7 +10,7 @@ from nltk.corpus import stopwords
 from nltk import FreqDist,ngrams,word_tokenize
 from nltk.stem import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.tokenize import RegexpTokenizer
+import re
 
 # %%
 
@@ -51,29 +53,25 @@ def stemmer(data):
     return ans
 
 def cleanData(data):
-    tokenizer = RegexpTokenizer(r'[a-zA-Z]\w+')
-    data = tokenizer.tokenize(data)
+    data = word_tokenize(data)
     data = lemmatizer(remove_stopwords(data))
 
     return np.asarray(data)
 
 def getData(path, category):
-    df = getDF('/home/deepak/IR_project/data/reviews_Amazon_Instant_Video_5.json.gz')
+    df = getDF(path)
+    df = df[:20000] ## For practical purpose
     df.drop(columns=['reviewerID', 'reviewerName', 'reviewTime', 'unixReviewTime', 'asin', 'overall'], inplace = True)
     df['ProductType'] = category
-
+    df = df[['helpful','reviewText','summary','ProductType']]
     data = df.values
-
-    for i in range(data.shape[0]%10):
+    for i in range(data.shape[0]):
         data[i, 0] = round((data[i, 0][0]+1.0) / (data[i, 0][1] + 2.0),3)
-        data[i, 1] = cleanData((data[i,3] + " " + data[i, 2] + " " + data[i, 1]).lower())
+        string = (data[i,3] + " " + data[i, 2] + " " + data[i, 1]).lower()
+        string = re.sub(r'[^\w\s]','',string)
+        data[i, 2] = cleanData(string)
+        data[i,1] = string
 
-    data = np.delete(data, [2,3], 1)
+    data = np.delete(data, [3], 1)
 
     return data
-
-
-# %%
-
-data = getData('/home/deepak/IR_project/data/reviews_Amazon_Instant_Video_5.json.gz', 'Amazon Instant Video')
-print(data[:5])
