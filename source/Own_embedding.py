@@ -10,6 +10,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Flatten
 from keras.layers.embeddings import Embedding
+from sklearn.cross_validation import train_test_split
 
 # %%
 data, vocab = util.getData(os.path.abspath('../data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
@@ -18,6 +19,7 @@ print (data.shape)
 print(vocab.shape)
 
 # %%
+
 # Collecting all the documents
 docs = np.asarray([row[1] for row in data])
 label = np.asarray([row[0] for row in data])
@@ -36,6 +38,8 @@ for i,s in enumerate(encoded_docs):
 
 padded_docs = pad_sequences(encoded_docs, maxlen= max_len,padding = 'post')
 
+X_train, X_test, y_train, y_test = train_test_split(padded_docs, label, test_size=0.3, random_state=0, stratify=label)
+
 # %%
 model = Sequential()
 model.add(Embedding(vocab_size, 100, input_length = max_len))
@@ -47,8 +51,8 @@ model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['acc'])
 print (model.summary())
 
 # %%
-model.fit(padded_docs,label,epochs = 50,verbose = 1)
+model.fit(X_train, y_train, epochs = 50, verbose = 1)
 
 # %%
-loss ,accuracy = model.evaluate(padded_docs,label, verbose=1)
+loss ,accuracy = model.evaluate(X_test, y_test, verbose=1)
 print ('Accuracy: %f' % (accuracy*100))
