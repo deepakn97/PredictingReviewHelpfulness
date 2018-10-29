@@ -12,21 +12,10 @@ from keras.layers import Flatten
 from keras.layers.embeddings import Embedding
 
 # %%
-data = util.getData(os.path.abspath('../data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
+data, vocab = util.getData(os.path.abspath('../data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
 print (data.shape)
 
-# %%
-vocab = np.asarray([])
-c = 0
-for i,row in enumerate(data):
-    if (row[0]>0.5):
-        c+=1
-    row[0] = row[0]>0.5
-    if(i%10000 == 0): print(i)
-    vocab = np.append(vocab,row[2])
-vocab = np.unique(vocab)
-
-# print (c)
+print(vocab.shape)
 
 # %%
 # Collecting all the documents
@@ -41,15 +30,15 @@ encoded_docs = [one_hot(d,vocab.shape[0]) for d in docs]
 # %%
 # Padding the Document
 max_len = 0
-for str in docs:
-    max_len = max(max_len,len(str))
+for i,s in enumerate(encoded_docs):
+    if(len(s)==1271): print(docs[i])
+    max_len = max(max_len,len(s))
 
-padded_docs =pad_sequences(encoded_docs,maxlen= max_len,padding = 'post')
-
+padded_docs = pad_sequences(encoded_docs, maxlen= max_len,padding = 'post')
 
 # %%
 model = Sequential()
-model.add(Embedding(vocab_size,32, input_length = max_len))
+model.add(Embedding(vocab_size, 100, input_length = max_len))
 model.add(Flatten())
 model.add(Dense(1,activation='sigmoid'))
 

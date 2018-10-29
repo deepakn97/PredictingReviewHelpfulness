@@ -55,23 +55,25 @@ def stemmer(data):
 def cleanData(data):
     data = word_tokenize(data)
     data = lemmatizer(remove_stopwords(data))
-
-    return np.asarray(data)
+    string = ' '.join(data)
+    return np.asarray(data), string
 
 def getData(path, category):
     df = getDF(path)
-    df = df[:20000] ## For practical purpose
+    # df = df[:2000] ## For practical purpose
     df.drop(columns=['reviewerID', 'reviewerName', 'reviewTime', 'unixReviewTime', 'asin', 'overall'], inplace = True)
     df['ProductType'] = category
     df = df[['helpful','reviewText','summary','ProductType']]
     data = df.values
+    total = ""
     for i in range(data.shape[0]):
-        data[i, 0] = round((data[i, 0][0]+1.0) / (data[i, 0][1] + 2.0),3)
+        data[i, 0] = round((data[i, 0][0]+1.0) / (data[i, 0][1] + 2.0),3) > 0.5
         string = (data[i,3] + " " + data[i, 2] + " " + data[i, 1]).lower()
         string = re.sub(r'[^\w\s]','',string)
-        data[i, 2] = cleanData(string)
-        data[i,1] = string
+        data[i, 2], data[i, 1] = cleanData(string)
+        total += (data[i,1]+" ")
 
+    vocab = np.unique(np.asarray(word_tokenize(total)))
     data = np.delete(data, [3], 1)
 
-    return data
+    return data, vocab
