@@ -3,4 +3,5 @@
 *.pyx
 *.csv
 *.json.gz
+*.db
 /data/
