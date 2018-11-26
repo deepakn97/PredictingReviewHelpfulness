@@ -13,7 +13,7 @@ from keras.layers.embeddings import Embedding
 from sklearn.model_selection import train_test_split
 
 # %%
-data, vocab = util.getData(os.path.abspath('../PredictingReviewHelpfulness/data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
+data, vocab = util.getData(os.path.abspath('./data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
 
 # %%
 
