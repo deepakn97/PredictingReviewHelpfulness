@@ -69,7 +69,18 @@ def getData(path, category):
     total = ""
     for i in range(data.shape[0]):
         # rev.append(data[i,0][1])
-        data[i, 0] = round((data[i, 0][0]+1.0) / (data[i, 0][1] + 2.0),3) > 0.5
+        # give four labels, -1,0,1,2.
+        # -1: no reviews
+        # 0: not helpful
+        # 1: neutral
+        # 2: helpful
+
+        lab = round((data[i, 0][0]+1.0) / (data[i, 0][1] + 2.0),3)
+        if(data[i,0] == 0 and data[i,1] == 0): data[i,0] = -1
+        elif(lab == 0.5): data[i,0] = 1
+        elif(lab<0.5): data[i, 0] = 0
+        else: data[i, 0] = 2
+
         string = (data[i,3] + " " + data[i, 2] + " " + data[i, 1]).lower()
         string = re.sub(r'[^\w\s]','',string)
         data[i, 2], data[i, 1] = cleanData(string)
