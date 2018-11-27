@@ -98,8 +98,14 @@ def getDatatoCSV_sql(path,category):
     data['ur'] = 0.0
     for i in range (data.shape[0]):
         if data['helpful'][i][0] + data['helpful'][i][1] == 0:
-                data.at[i,'review_rating'] = 0.500
-        else :
-            data.at[i,'review_rating'] = round((data['helpful'][i][0]) / (data['helpful'][i][1]),3)
+                data.at[i,'review_rating'] = -1
+        else:
+            rr = round((data['helpful'][i][0]) / (data['helpful'][i][1]),3)
+            if rr == 0.5 :
+                    data.at[i,'review_rating'] = 1
+            elif rr >0.5 :
+                data.at[i,'review_rating'] = 2
+            else :
+                data.at[i,'review_rating'] = 0
     data = data.drop(columns=['helpful'])
     data.to_csv(os.path.abspath('./data/reviews_Amazon_Instant_Video_5.csv'))
