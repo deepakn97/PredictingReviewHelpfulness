@@ -10,6 +10,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Flatten
 from keras.layers.embeddings import Embedding
+from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import train_test_split
 
 # %%
@@ -72,11 +73,10 @@ print (model1.summary())
 # loss ,accuracy = model.evaluate(X_test, y_test, verbose=1)
 # print ('Accuracy: %f' % (accuracy*100))
 # %%
-print(X_train.shape)
-print(y_train[:10])
-from keras.utils.np_utils import to_categorical
 
 y_train = to_categorical(y_train, num_classes=3)
+y_test = to_categorical(y_test, num_classes=3)
+
 # %%
 model1.fit(X_train, y_train, epochs = 6, verbose = 1, batch_size=256)
 
