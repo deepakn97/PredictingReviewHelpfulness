@@ -1,13 +1,5 @@
 # Using sqlite3
 # Create Amazon_data.db in data folder
-
-# ----------------------- use funtion getDatatoCSV_sql to create csv file
-
-# ----------------- use the below lines to import csv in sql database and create product_data table
-# .mode csv
-# .import reviews_Amazon_Instant_Video_5.csv  product_data
-# .exit
-
 # %%
 import source_prh.utility as util
 import sqlite3 as sql
@@ -16,7 +8,7 @@ import csv
 import pandas as pd
 # %%
 # Function to create CSV file to be imported in sql
-util.getDatatoCSV_sql(os.path.abspath('./data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
+util.getDatatoCSV_sql([(os.path.abspath('./data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')])
 
 # %%
 def create_product_data_table():
@@ -26,13 +18,12 @@ def create_product_data_table():
     flag = cur.fetchall()[0][0];
 
     if flag == 0 :
-        cur.execute("CREATE TABLE if not exists product_data (slno INT PRIMARY KEY, product_id TEXT, reviewText TEXT, summary TEXT,  reviewTime INT, overall FLOAT,  reviewerID TEXT, review_rating FLOAT, ur FLOAT);")
-        df = pd.read_csv('./data/reviews_Amazon_Instant_Video_5.csv')
-        df = df.rename(columns={"Unnamed: 0" : "slno"})
-        df = df[['slno','product_id','reviewText','summary','reviewTime','overall','reviewerID','review_rating','ur']]
+        cur.execute("CREATE TABLE if not exists product_data (slno INT PRIMARY KEY, product_id TEXT,product_type TEXT, reviewText TEXT, summary TEXT,  reviewTime INT, overall FLOAT,  reviewerID TEXT, review_rating FLOAT, ur FLOAT);")
+        df = pd.read_csv('./data/data_sql.csv')
+        df = df[['slno','product_id','product_type','reviewText','summary','reviewTime','overall','reviewerID','review_rating','ur']]
 
         for id,rows in df.iterrows():
-            cur.execute("INSERT INTO product_data(slno, product_id, reviewText, summary, reviewtime, overall, reviewerID, review_rating, ur) values(?,?,?,?,?,?,?,?,?);",rows)
+            cur.execute("INSERT INTO product_data(slno, product_id, product_type, reviewText, summary, reviewtime, overall, reviewerID, review_rating, ur) values(?,?,?,?,?,?,?,?,?,?);",rows)
         db.commit()
         print ("product_data table was created with entries")
 

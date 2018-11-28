@@ -58,25 +58,32 @@ def cleanData(data):
     string = ' '.join(data)
     return data, string
 
-def getDatatoCSV_sql(path,category):
-    data = getDF(path)
-    data = data.drop(columns=['reviewTime','reviewerName'])
-    data = data.rename(columns={"asin" : "product_id","unixReviewTime":"reviewTime"})
-    data['review_rating'] = 0.0
-    data['ur'] = 0.0
-    for i in range (data.shape[0]):
-        if data['helpful'][i][0] + data['helpful'][i][1] == 0:
-                data.at[i,'review_rating'] = -1
-        else:
-            rr = round((data['helpful'][i][0]) / (data['helpful'][i][1]),3)
-            if rr == 0.5 :
-                    data.at[i,'review_rating'] = 1
-            elif rr >0.5 :
-                data.at[i,'review_rating'] = 2
-            else :
-                data.at[i,'review_rating'] = 0
-    data = data.drop(columns=['helpful'])
-    data.to_csv(os.path.abspath('./data/reviews_Amazon_Instant_Video_5.csv'))
+def getDatatoCSV_sql(files):
+    bigdata = pd.DataFrame(columns=['slno','product_id','product_type','reviewText','summary','reviewTime','overall','reviewerID','review_rating','ur'])
+    for path, category in files:
+        data = getDF(path)
+        data = data.drop(columns=['reviewTime','reviewerName'])
+        data = data.rename(columns={"asin" : "product_id","unixReviewTime":"reviewTime"})
+        data['review_rating'] = 0.0
+        data['ur'] = 0.0
+        data['product_type'] = category
+        data['slno'] = 0
+        for i in range (data.shape[0]):
+            if data['helpful'][i][0] + data['helpful'][i][1] == 0:
+                    data.at[i,'review_rating'] = -1
+            else:
+                rr = round((data['helpful'][i][0]) / (data['helpful'][i][1]),3)
+                if rr == 0.5 :
+                        data.at[i,'review_rating'] = 1
+                elif rr >0.5 :
+                    data.at[i,'review_rating'] = 2
+                else :
+                    data.at[i,'review_rating'] = 0
+            data.at[i,'slno'] = i
+        data = data.drop(columns=['helpful'])
+        data = data[['slno','product_id','product_type','reviewText','summary','reviewTime','overall','reviewerID','review_rating','ur']]
+        bigdata=bigdata.append(data)
+    bigdata.to_csv(os.path.abspath('./data/data_sql.csv'),index = False)
 
 # rev = []
 def getData(path, category):
