@@ -88,7 +88,7 @@ def getDatatoCSV_sql(files):
 # rev = []
 def getData(path, category):
     df = pd.read_csv(path)
-    df = df[:2000] ## For practical purpose
+    # df = df[:2000] ## For practical purpose
     df.drop(columns=['slno', 'product_id', 'reviewerID', 'reviewTime'], inplace = True)
     df = df[['review_rating','reviewText','summary', 'ur']]
     data = df.values
@@ -101,7 +101,7 @@ def getData(path, category):
         # 1: neutral
         # 2: helpful
 
-        string = (data[i, 2] + " " + data[i, 1]).lower()
+        string = (category + " " + data[i, 2] + " " + data[i, 1]).lower()
         string = re.sub(r'[^\w\s]','',string)
         data[i, 1], data[i, 2] = cleanData(string)
         total += (data[i,2]+" ")
