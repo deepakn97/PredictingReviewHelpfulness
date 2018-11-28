@@ -56,39 +56,7 @@ def cleanData(data):
     data = word_tokenize(data)
     data = lemmatizer(remove_stopwords(data))
     string = ' '.join(data)
-    return np.asarray(data), string
-
-# rev = []
-def getData(path, category):
-    df = getDF(path)
-    df = df[:2000] ## For practical purpose
-    df.drop(columns=['reviewerID', 'reviewerName', 'reviewTime', 'unixReviewTime', 'asin', 'overall'], inplace = True)
-    df['ProductType'] = category
-    df = df[['helpful','reviewText','summary','ProductType']]
-    data = df.values
-    total = ""
-    for i in range(data.shape[0]):
-        # rev.append(data[i,0][1])
-        # give four labels, -1,0,1,2.
-        # -1: no reviews
-        # 0: not helpful
-        # 1: neutral
-        # 2: helpful
-
-        lab = round((data[i, 0][0]+1.0) / (data[i, 0][1] + 2.0),3)
-        if(data[i,0] == 0 and data[i,1] == 0): data[i,0] = -1
-        elif(lab == 0.5): data[i,0] = 1
-        elif(lab<0.5): data[i, 0] = 0
-        else: data[i, 0] = 2
-
-        string = (data[i,3] + " " + data[i, 2] + " " + data[i, 1]).lower()
-        string = re.sub(r'[^\w\s]','',string)
-        data[i, 2], data[i, 1] = cleanData(string)
-        total += (data[i,1]+" ")
-
-    vocab = np.unique(np.asarray(word_tokenize(total)))
-    data = np.delete(data, [3], 1)
-    return data, vocab
+    return data, string
 
 def getDatatoCSV_sql(path,category):
     data = getDF(path)
@@ -109,3 +77,30 @@ def getDatatoCSV_sql(path,category):
                 data.at[i,'review_rating'] = 0
     data = data.drop(columns=['helpful'])
     data.to_csv(os.path.abspath('./data/reviews_Amazon_Instant_Video_5.csv'))
+
+# rev = []
+def getData(path, category):
+    df = pd.read_csv(path)
+    df = df[:2000] ## For practical purpose
+    df.drop(columns=['slno', 'product_id', 'reviewerID', 'reviewTime'], inplace = True)
+    df = df[['review_rating','reviewText','summary', 'ur']]
+    data = df.values
+    total = ""
+    for i in range(data.shape[0]):
+        # rev.append(data[i,0][1])
+        # give four labels, -1,0,1,2.
+        # -1: no reviews
+        # 0: not helpful
+        # 1: neutral
+        # 2: helpful
+
+        string = (data[i, 2] + " " + data[i, 1]).lower()
+        string = re.sub(r'[^\w\s]','',string)
+        data[i, 1], data[i, 2] = cleanData(string)
+        total += (data[i,2]+" ")
+
+    vocab = np.unique(np.asarray(word_tokenize(total)))
+    return data, vocab
+
+# %%
+# data, vocab = getData('./data/product_data.csv', "Amazon_Instant_Video")

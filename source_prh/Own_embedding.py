@@ -14,17 +14,20 @@ from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import train_test_split
 
 # %%
-data, vocab = util.getData(os.path.abspath('./data/reviews_Amazon_Instant_Video_5.json.gz'), 'Amazon_Instant_Video')
+data, vocab = util.getData('./data/product_data.csv', 'Amazon_Instant_Video')
 useful_data = [row for row in data if row[0] != -1]
 noreview_data = [row for row in data if row[0] == -1]
 # %%
 
 # Collecting all the documents
-docs_useful = list(np.asarray([row[1] for row in useful_data]))
+docs_useful = list(np.asarray([row[2] for row in useful_data]))
 label_useful = list(np.asarray([row[0] for row in useful_data]))
 
-docs_noreview = list(np.asarray([row[1] for row in noreview_data]))
+docs_noreview = list(np.asarray([row[2] for row in noreview_data]))
 label_noreview = list(np.asarray([row[0] for row in noreview_data]))
+
+# %%
+print(docs_useful[0])
 # x = sum(label)
 # print (x)
 docs = docs_useful+docs_noreview
@@ -39,7 +42,7 @@ encoded_docs = [one_hot(d,vocab.shape[0]) for d in docs]
 # Padding the Document
 max_len = 0
 for i,s in enumerate(encoded_docs):
-    if(len(s)==1271): print(docs[i])
+    # if(len(s)==1271): print(docs[i])
     max_len = max(max_len,len(s))
 
 padded_docs = pad_sequences(encoded_docs, maxlen= max_len,padding = 'post')
