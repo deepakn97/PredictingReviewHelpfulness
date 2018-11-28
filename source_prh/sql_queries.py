@@ -66,12 +66,13 @@ def update(): # Need to update this function to update the data table
     cur.execute("SELECT slno,reviewerID,review_rating from product_data order by reviewerID, reviewTime;")
     rows = cur.fetchall();
     for slno,uid, rr in rows :
-        if(rr<0.5):
-            cur.execute("update user_data set x1=x1, x2 = x2+1.0  where userId = ?;",(uid,))
-        elif(rr>0.5):
-            cur.execute("update user_data set x1=x1+1.0, x2 = x2 where userId = ?;",(uid,))
-        cur.execute("update user_data set ur=(x1-x2)/(x1+x2) where userId = ?;",(uid,))
-        cur.execute("update product_data set ur = (select ur from user_data where userid = ?) where slno = ?;",(uid,slno,))
+        if(rr!=-1 and rr!=1):
+            if(rr==0):
+                cur.execute("update user_data set x1=x1, x2 = x2+1.0  where userId = ?;",(uid,))
+            elif(rr==2):
+                cur.execute("update user_data set x1=x1+1.0, x2 = x2 where userId = ?;",(uid,))
+            cur.execute("update user_data set ur=(x1-x2)/(x1+x2) where userId = ?;",(uid,))
+            cur.execute("update product_data set ur = (select ur from user_data where userid = ?) where slno = ?;",(uid,slno,))
     db.commit()
     db.close()
 # %%
