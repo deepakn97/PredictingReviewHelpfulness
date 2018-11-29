@@ -86,11 +86,11 @@ def getDatatoCSV_sql(files):
     bigdata.to_csv(os.path.abspath('./data/data_sql.csv'),index = False)
 
 # rev = []
-def getData(path, category):
+def getData(path):
     df = pd.read_csv(path)
     # df = df[:2000] ## For practical purpose
     df.drop(columns=['slno', 'product_id', 'reviewerID', 'reviewTime'], inplace = True)
-    df = df[['review_rating','reviewText','summary', 'ur']]
+    df = df[['review_rating', 'reviewText','summary', 'product_type', 'ur']]
     data = df.values
     total = ""
     for i in range(data.shape[0]):
@@ -101,7 +101,7 @@ def getData(path, category):
         # 1: neutral
         # 2: helpful
 
-        string = (category + " " + data[i, 2] + " " + data[i, 1]).lower()
+        string = (data[i, 3] + " " + data[i, 2] + " " + data[i, 1]).lower()
         string = re.sub(r'[^\w\s]','',string)
         data[i, 1], data[i, 2] = cleanData(string)
         total += (data[i,2]+" ")

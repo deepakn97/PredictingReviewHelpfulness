@@ -12,11 +12,17 @@ from keras.layers import LSTM, Dense, Flatten
 from keras.layers.embeddings import Embedding
 from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
 
 # %%
-data, vocab = util.getData('./data/product_data.csv', 'Amazon_Instant_Video')
+data, vocab = util.getData('./data/product_data.csv')
 
 
+# %%
+# print(data.shape)
+# print(data[0])
+# data = data[:2000]
 # %%
 # Converting the text to an array of integers
 vocab_size = vocab.shape[0]
@@ -30,7 +36,7 @@ for i,s in enumerate(data[:,2]):
     # if(len(s)==1271): print(docs[i])
     max_len = max(max_len,len(s))
 
-padded_docs = pad_sequences(data[:,2], maxlen= max_len,padding = 'post')
+padded_docs = pad_sequences(data[:, 2], maxlen= max_len, padding = 'post')
 for i, rows in enumerate(data):
     rows[2] = padded_docs[i]
 
@@ -49,16 +55,16 @@ model.add(Dense(1,activation='sigmoid'))
 
 
 model1 = Sequential()
-model1.add(Embedding(vocab_size, 32, input_length = max_len))
-model1.add(LSTM(25, dropout=0.5, return_sequences=True, activation='sigmoid'))
-model1.add(LSTM(25, dropout=0.5, return_sequences=False, activation='sigmoid'))
+model1.add(Embedding(vocab_size, 128, input_length = max_len))
+model1.add(LSTM(128, dropout=0.4, return_sequences=True, activation='tanh'))
+model1.add(LSTM(128, dropout=0.4, return_sequences=False, activation='tanh'))
 model1.add(Dense(3,activation='softmax'))
 
 # %%
 # model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['acc'])
-model1.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['acc'])
+model1.compile(optimizer='adadelta',loss='categorical_crossentropy',metrics=['acc'])
 # print (model.summary())
-print (model1.summary())
+# print (model1.summary())
 
 # %%
 # model.fit(X_train, y_train, epochs = 50, verbose = 1)
@@ -75,24 +81,53 @@ docs_train = np.asarray([X_train[i, 1] for i in range(len(X_train))])
 docs_test = np.asarray([X_test[i, 1] for i in range(len(X_test))])
 
 # %%
+# print(docs_train.shape)
 # %%
-model1.fit(docs_train, y_train, validation_split=0.1, epochs = 6, verbose = 1, batch_size=256)
+history = model1.fit(docs_train, y_train, validation_split=0.3, epochs = 50, verbose = 1, batch_size=64)
 
+# %%
+import matplotlib.pyplot as plt
+# print(history.history.keys())
+#  "Accuracy"
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'validation'], loc='upper left')
+plt.show()
+# %%
+# "Loss"
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'validation'], loc='upper left')
+plt.show()
 # %%
 train_text_probs = model1.predict(docs_train, batch_size= 32, verbose = 1)
-train_test_probs= np.append(train_test_probs, X_train[:, 2], axis = 1)
+test_text_probs = model1.predict(docs_test, batch_size= 32, verbose = 1)
 
 # %%
-from  sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import make_classification
 
-n = train_text_probs.shape[0]
-features = 3
-X,y  = make_classification(n_samples = n, n_features = features, shuffle = True)
+ur_train = np.asarray([X_train[i, 3] for i in range(len(X_train))]).reshape(X_train.shape[0], 1)
+ur_test = np.asarray([X_test[i, 3] for i in range(len(X_test))]).reshape(X_test.shape[0], 1)
+
+# %%
+print(train_text_probs.shape)
+print(ur_train.shape)
+# %%
+X_train_mlmodel = np.append(train_text_probs, ur_train, axis = 1)
+X_test_mlmodel = np.append(test_text_probs, ur_test, axis = 1)
+
+# %%
 classifier = RandomForestClassifier(n_estimators = 4,max_depth = 3)
 
-classifier.fir(X,y)
-classifier.predict
+classifier.fit(X_train_mlmodel,y_train)
+
+# %%
+classifier.score(X_test_mlmodel, y_test)
 
 # %%
 loss ,accuracy = model1.evaluate(X_test, y_test, verbose=1)
