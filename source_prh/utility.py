@@ -14,11 +14,13 @@ import re
 
 # %%
 
+# parse json file
 def parse(path):
   g = gzip.open(path, 'rb')
   for l in g:
     yield eval(l)
 
+# get pandas DataFrame from the json file
 def getDF(path):
   i = 0
   df = {}
@@ -52,12 +54,14 @@ def stemmer(data):
         ans.append(ps.stem(each))
     return ans
 
+ # tokenize, lemmatize and remove stopwords from the given data
 def cleanData(data):
     data = word_tokenize(data)
     data = lemmatizer(remove_stopwords(data))
     string = ' '.join(data)
     return data, string
 
+# function to convert json to importable csv data file gor sql
 def getDatatoCSV_sql(files):
     bigdata = pd.DataFrame(columns=['slno','product_id','product_type','reviewText','summary','reviewTime','overall','reviewerID','review_rating','ur'])
     for path, category in files:
@@ -85,7 +89,7 @@ def getDatatoCSV_sql(files):
         bigdata=bigdata.append(data)
     bigdata.to_csv(os.path.abspath('./data/data_sql.csv'),index = False)
 
-# rev = []
+# get data from the final sql table
 def getData(path):
     df = pd.read_csv(path)
     # df = df[:2000] ## For practical purpose
@@ -101,13 +105,12 @@ def getData(path):
         # 1: neutral
         # 2: helpful
 
+        # append product_type, summary to review text
         string = (data[i, 3] + " " + data[i, 2] + " " + data[i, 1]).lower()
         string = re.sub(r'[^\w\s]','',string)
         data[i, 1], data[i, 2] = cleanData(string)
         total += (data[i,2]+" ")
 
+    # generate vocabulary to use for embedding
     vocab = np.unique(np.asarray(word_tokenize(total)))
     return data, vocab
-
-# %%
-# data, vocab = getData('./data/product_data.csv', "Amazon_Instant_Video")

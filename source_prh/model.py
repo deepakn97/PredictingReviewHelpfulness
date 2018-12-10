@@ -16,18 +16,16 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 
 # %%
+
+# Loading the dataset
 data, vocab = util.getData('./data/product_data.csv')
 
-
-# %%
-# print(data.shape)
-# print(data[0])
-# data = data[:2000]
 # %%
 # Converting the text to an array of integers
 vocab_size = vocab.shape[0]
 for rows in data:
     rows[2] = one_hot(rows[2], vocab_size)
+
 # %%
 # Padding the Document
 
@@ -41,6 +39,7 @@ for i, rows in enumerate(data):
     rows[2] = padded_docs[i]
 
 # %%
+# Seperate the data with no reviews
 useful_data = np.asarray([row for row in data if row[0] != -1])
 noreview_data = np.asarray([row for row in data if row[0] == -1])
 
@@ -48,21 +47,26 @@ X_train, X_test, y_train, y_test = train_test_split(useful_data[:, 1:], useful_d
 
 
 # %%
+
+# Define models
+
+# Simple ANN model
 model = Sequential()
-model.add(Embedding(vocab_size, 100, input_length = max_len))
+model.add(Embedding(vocab_size, 32, input_length = max_len))
 model.add(Flatten())
-model.add(Dense(1,activation='sigmoid'))
+model.add(Dense(3,activation='softmax'))
 
 
+# Language Model
 model1 = Sequential()
-model1.add(Embedding(vocab_size, 128, input_length = max_len))
-model1.add(LSTM(128, dropout=0.4, return_sequences=True, activation='tanh'))
-model1.add(LSTM(128, dropout=0.4, return_sequences=False, activation='tanh'))
+model1.add(Embedding(vocab_size, 32, input_length = max_len))
+model1.add(LSTM(12, dropout=0.4, return_sequences=True, activation='tanh'))
+model1.add(LSTM(12, dropout=0.4, return_sequences=False, activation='tanh'))
 model1.add(Dense(3,activation='softmax'))
 
 # %%
-# model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['acc'])
-model1.compile(optimizer='adadelta',loss='categorical_crossentropy',metrics=['acc'])
+model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['acc'])
+# model1.compile(optimizer='adadelta',loss='categorical_crossentropy',metrics=['acc'])
 # print (model.summary())
 # print (model1.summary())
 
@@ -83,9 +87,10 @@ docs_test = np.asarray([X_test[i, 1] for i in range(len(X_test))])
 # %%
 # print(docs_train.shape)
 # %%
-history = model1.fit(docs_train, y_train, validation_split=0.3, epochs = 50, verbose = 1, batch_size=64)
+history = model.fit(docs_train, y_train, validation_split=0.3, epochs = 50, verbose = 1, batch_size=64)
 
 # %%
+# plotting model loss and accuracy
 import matplotlib.pyplot as plt
 # print(history.history.keys())
 #  "Accuracy"
@@ -111,24 +116,21 @@ test_text_probs = model1.predict(docs_test, batch_size= 32, verbose = 1)
 
 # %%
 
+# user rating from the data
 ur_train = np.asarray([X_train[i, 3] for i in range(len(X_train))]).reshape(X_train.shape[0], 1)
 ur_test = np.asarray([X_test[i, 3] for i in range(len(X_test))]).reshape(X_test.shape[0], 1)
 
 # %%
-print(train_text_probs.shape)
-print(ur_train.shape)
-# %%
+
+# augmented data for ML model, LSTM output + user rating
 X_train_mlmodel = np.append(train_text_probs, ur_train, axis = 1)
 X_test_mlmodel = np.append(test_text_probs, ur_test, axis = 1)
 
 # %%
+# defining ML model(any other model will also work)
 classifier = RandomForestClassifier(n_estimators = 4,max_depth = 3)
 
 classifier.fit(X_train_mlmodel,y_train)
 
 # %%
 classifier.score(X_test_mlmodel, y_test)
-
-# %%
-loss ,accuracy = model1.evaluate(X_test, y_test, verbose=1)
-print ('Accuracy: %f' % (accuracy*100))
